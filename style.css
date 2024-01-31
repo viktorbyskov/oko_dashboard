@@ -1,0 +1,16 @@
+div.row-widget.stLinkButton {
+    margin-top: 27px
+}
+
+p {
+    font-size:15px !important;
+    text-align: center;
+}
+
+div[data-testid="stMetric"] > div {
+    font-size: 22px;
+}
+
+.st-emotion-cache-z5fcl4 {
+    padding-top: 10px;
+}
