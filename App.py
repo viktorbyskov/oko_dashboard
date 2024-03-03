@@ -29,3 +29,5 @@ with col2:
 conn = st.connection("gsheets", type=GSheetsConnection)
 df = conn.read(worksheet=sheet_name, usecols=['måned', 'fast_var', 'kredit_debit', 'Kategori', 'Ind_ud', 'Navn', 'beløb_måned', 'beløb_kvartal', 'beløb_år', "beløb"])
 df = df.dropna(subset=["måned"])
+
+st.dataframe(df)
