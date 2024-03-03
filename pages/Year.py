@@ -2,7 +2,8 @@ import streamlit as st
 import pandas as pd
 import requests
 from io import StringIO
-from funcs import format_dk, to_float
+from funcs import format_dk, to_float, getthismonth
+from streamlit_gsheets import GSheetsConnection
 
 st.set_page_config(
     page_title="Økonomisk overblik",
@@ -14,29 +15,20 @@ st.set_page_config(
 with open('style.css') as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
-months = ["Januar", "Februar"]
+months = ["Januar", "Februar", "Marts"]
+thismonth = getthismonth().capitalize()
+index_of_thismonth = months.index(thismonth)
+months = [thismonth] + months
 
-sheet_id = "1H29_v1hU5H6wSAJj29QgyltHvletdJp8CFim1QXJrc4"
 col1, col2, col3 = st.columns(3)
 with col1:
     sheet_name = st.selectbox("Måned", months)
-    url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
 with col2:
-    st.link_button("Google Sheet", url.replace("gviz/tq?tqx=out:csv&sheet=", "edit#gid="))
+    st.link_button("Google Sheet", "https://docs.google.com/spreadsheets/d/1H29_v1hU5H6wSAJj29QgyltHvletdJp8CFim1QXJrc4/")
 
-# Use requests to download the CSV data
-response = requests.get(url, verify=True)  # Set verify to True to enable SSL certificate verification
-
-# Check if the request was successful (status code 200)
-if response.status_code == 200:
-    # Use StringIO to convert the CSV content to a file-like object
-    csv_data = StringIO(response.text)
-
-    # Read the CSV data into a Pandas DataFrame
-    df = pd.read_csv(csv_data, usecols=list(range(10)))
-
-else:
-    st.error(f"Failed to retrieve data. Status code: {response.status_code}")
+conn = st.connection("gsheets", type=GSheetsConnection)
+df = conn.read(worksheet=sheet_name, usecols=['måned', 'fast_var', 'kredit_debit', 'Kategori', 'Ind_ud', 'Navn', 'beløb_måned', 'beløb_kvartal', 'beløb_år', "beløb"])
+df = df.dropna(subset=["måned"])
 
 df["beløb"] = df["beløb"].replace(",", "", regex=True).astype(float)
 df_ulon = df[df["Kategori"] != "løn"]

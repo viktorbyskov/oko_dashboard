@@ -1,6 +1,6 @@
 import streamlit as st
 import streamlit_authenticator as stauth
-from funcs import format_dk, to_float, read_sheet
+from funcs import format_dk, to_float, read_sheet, getthismonth
 import users
 
 # --- App ---

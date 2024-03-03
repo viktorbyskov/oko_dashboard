@@ -60,4 +60,25 @@ def read_sheet():
 
     else:
         return st.error(f"Failed to retrieve data. Status code: {response.status_code}")
-    
+
+
+from datetime import datetime
+def getthismonth():
+    today = datetime.now()
+    month_number = today.month
+    danish_month_names = {
+    1: "januar",
+    2: "februar",
+    3: "marts",
+    4: "april",
+    5: "maj",
+    6: "juni",
+    7: "juli",
+    8: "august",
+    9: "september",
+    10: "oktober",
+    11: "november",
+    12: "december",
+    }
+    return danish_month_names[month_number]
+
