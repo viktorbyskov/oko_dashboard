@@ -27,7 +27,9 @@ with col2:
     st.link_button("Google Sheet", "https://docs.google.com/spreadsheets/d/1H29_v1hU5H6wSAJj29QgyltHvletdJp8CFim1QXJrc4/")
 
 conn = st.connection("gsheets", type=GSheetsConnection)
-df = conn.read(worksheet=sheet_name, usecols=['måned', 'fast_var', 'kredit_debit', 'Kategori', 'Ind_ud', 'Navn', 'beløb_måned', 'beløb_kvartal', 'beløb_år', "beløb"])
+df = conn.read(worksheet=sheet_name,
+        usecols=['måned', 'fast_var', 'kredit_debit', 'Kategori', 'Ind_ud', 'Navn', 'beløb_måned', 'beløb_kvartal', 'beløb_år', "beløb"],
+        ttl=0)
 df = df.dropna(subset=["måned"])
 
 df["beløb"] = df["beløb"].replace(",", "", regex=True).astype(float)

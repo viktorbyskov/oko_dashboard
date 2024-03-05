@@ -23,10 +23,10 @@ def update_data():
                 if submitted:
                         if tid == "Kvartalsvis":
                                 belob_k = belobet
-                                belob = float(belobet / 3)
+                                belob = belobet
                         elif tid == "Årligt":
                                 belob_a = belob
-                                belob = float(belobet) / 12
+                                belob = belobet
                         else:
                                 belob_m = belobet
                                 belob = belobet
@@ -42,7 +42,9 @@ def update_data():
                                 'beløb': belob
                         }
                         conn = st.connection("gsheets", type=GSheetsConnection)
-                        olddf = conn.read(worksheet=maned, usecols=['måned', 'fast_var', 'kredit_debit', 'Kategori', 'Ind_ud', 'Navn', 'beløb_måned', 'beløb_kvartal', 'beløb_år', "beløb"])
+                        olddf = conn.read(worksheet=maned,
+                                                usecols=['måned', 'fast_var', 'kredit_debit', 'Kategori', 'Ind_ud', 'Navn', 'beløb_måned', 'beløb_kvartal', 'beløb_år', "beløb"],
+                                                ttl=0)
                         olddf = olddf.dropna(subset=["måned"])
                         newdata = pd.DataFrame(data, index=[0])
                         newdf = pd.concat([olddf, newdata], axis=0).reset_index(drop=True)
