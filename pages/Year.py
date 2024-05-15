@@ -15,7 +15,7 @@ st.set_page_config(
 with open('style.css') as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
-months = ["Januar", "Februar", "Marts"]
+months = ["Januar", "Februar", "Marts", "April", "Maj"]
 thismonth = getthismonth().capitalize()
 index_of_thismonth = months.index(thismonth)
 months = [thismonth] + months
