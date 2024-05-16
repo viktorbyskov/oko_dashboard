@@ -39,3 +39,12 @@ def get_values(spreadsheet_id: str, sheetname:str, range: str, service = service
 def dffromsheet(data: list):
   df = pd.DataFrame(data[1:], columns=data[0])
   return df
+
+def sheetfromdf(df: pd.DataFrame) -> list:
+  if df.empty:
+    return []
+    # Convert DataFrame to list of lists
+    data = df.values.tolist()
+    # Add column names as the first row
+    data.insert(0, df.columns.tolist())
+    return data

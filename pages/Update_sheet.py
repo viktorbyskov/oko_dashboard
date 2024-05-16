@@ -1,53 +1,39 @@
 import streamlit as st
-from streamlit_gsheets import GSheetsConnection
 import pandas as pd
+import requests
+from io import StringIO
+from funcs import getthismonth
+from streamlit_gsheets import GSheetsConnection
 
-def update_data():
-        data = ""
+# Import functions
+import sys
+sys.path.append('googledrive_api')
+from googledrive_api.quickstart import get_values, creds, dffromsheet, sheetfromdf
 
-        with st.form("my_form"):
-                maned = st.selectbox("Måned", ["Marts"])
-                fast_var = st.selectbox("Fast eller variabel udgift", ["var", "fast", "Status"])
-                kredit_debit = st.selectbox("Kredit elelr Debit", ["kredit", "debit"])
-                kategori = st.text_input(label="Kategori")
-                indud = st.selectbox("Indtægt eller udgift?", ["ud", "ind"])
-                navn = st.text_input(label="Navn")
-                tid = st.selectbox("Hvor tit betaler du?", ["Kun denne måned", "Månedlig", "Kvartalsvis", "Årligt"])
-                belobet = st.text_input(label="Beløb?")
-                belob_m = ""
-                belob_k = ""
-                belob_a = ""
-                belob = ""
-                # Every form must have a submit button.
-                submitted = st.form_submit_button("Submit")
-                if submitted:
-                        if tid == "Kvartalsvis":
-                                belob_k = belobet
-                                belob = belobet
-                        elif tid == "Årligt":
-                                belob_a = belob
-                                belob = belobet
-                        else:
-                                belob_m = belobet
-                                belob = belobet
-                        data = {'måned': maned.lower(),
-                                'fast_var': fast_var,
-                                'kredit_debit': kredit_debit,
-                                'Kategori': kategori,
-                                'Ind_ud': indud,
-                                'Navn': navn,
-                                'beløb_måned': belob_m,
-                                'beløb_kvartal': belob_k,
-                                'beløb_år': belob_a,
-                                'beløb': belob
-                        }
-                        conn = st.connection("gsheets", type=GSheetsConnection)
-                        olddf = conn.read(worksheet=maned,
-                                                usecols=['måned', 'fast_var', 'kredit_debit', 'Kategori', 'Ind_ud', 'Navn', 'beløb_måned', 'beløb_kvartal', 'beløb_år', "beløb"],
-                                                ttl=0)
-                        olddf = olddf.dropna(subset=["måned"])
-                        newdata = pd.DataFrame(data, index=[0])
-                        newdf = pd.concat([olddf, newdata], axis=0).reset_index(drop=True)
-                        conn.update(worksheet=maned, data=newdf)
-                        st.write("Success!")
-update_data()
+# Page config
+st.set_page_config(
+    page_title="Økonomisk overblik",
+    page_icon="📈",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
+
+with open('style.css') as f:
+    st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+
+# Start
+range_nr = "A:Z"
+months = ["Januar", "Februar", "Marts", "April", "Maj"]
+
+col1, col2, col3 = st.columns(3)
+with col1:
+    sheet_name = st.selectbox("Måned", months)
+with col2:
+    st.link_button("Google Sheet", "https://docs.google.com/spreadsheets/d/1H29_v1hU5H6wSAJj29QgyltHvletdJp8CFim1QXJrc4/")
+data = get_values(creds["sheetid"], sheet_name,range_nr)
+df = dffromsheet(data)
+
+st.data_editor(df)
+st.write(df)
+
+st.markdown(sheetfromdf(df))
