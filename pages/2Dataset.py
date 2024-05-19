@@ -1,9 +1,5 @@
 import streamlit as st
 import pandas as pd
-import requests
-from io import StringIO
-from funcs import getthismonth
-from streamlit_gsheets import GSheetsConnection
 
 # Import functions
 import sys
@@ -33,5 +29,4 @@ with col2:
 data = get_values(creds["sheetid"], sheet_name,range_nr)
 df = dffromsheet(data)
 
-st.data_editor(df)
 st.write(df)
