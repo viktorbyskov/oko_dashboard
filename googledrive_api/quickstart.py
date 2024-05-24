@@ -1,73 +1,74 @@
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from credsdict import creds
 import pandas as pd
+import os
+import json
 
-def service(creds: str, scope: list):
+def get_service_account_info() -> dict:
+    """Fetches the service account information from the environment variable."""
+    return json.loads(os.environ['GCP_SERVICE_ACCOUNT_KEY'])
 
-  SERVICE_ACCOUNT_FILE = creds
-  SCOPES = scope
-  
-  credentials = service_account.Credentials.from_service_account_file(
-          SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-  
-  service = build('sheets', 'v4', credentials=credentials)
+def service(scope: list) -> build:
+    """Builds and returns the Google Sheets API service."""
+    credentials = service_account.Credentials.from_service_account_info(
+        get_service_account_info(), scopes=scope
+    )
+    return build('sheets', 'v4', credentials=credentials)
 
-  return service
-
-def okoservice():
-  return service(creds["serviceacc"],['https://www.googleapis.com/auth/spreadsheets'])
+def okoservice() -> build:
+    """Returns the Google Sheets API service with predefined scopes."""
+    return service(['https://www.googleapis.com/auth/spreadsheets'])
 
 service = okoservice()
 
-def get_values(spreadsheet_id: str, sheetname:str, range: str, service = service):
-  range_name = f"{sheetname}!{range}"
-  try:
-    result = (
-        service.spreadsheets()
-        .values()
-        .get(spreadsheetId=spreadsheet_id, range=range_name)
-        .execute()
-    )
-    rows = result.get("values", [])
-    return rows
+def get_values(spreadsheet_id: str, sheetname: str, range_: str, service=service) -> list:
+    """Fetches values from a specified Google Sheets range."""
+    range_name = f"{sheetname}!{range_}"
+    try:
+        result = service.spreadsheets().values().get(spreadsheetId=spreadsheet_id, range=range_name).execute()
+        return result.get("values", [])
+    except HttpError as error:
+        print(f"An error occurred: {error}")
+        return []
 
-  except HttpError as error:
-    print(f"An error occurred: {error}")
-    return error
+def dffromsheet(data: list) -> pd.DataFrame:
+    """Converts a list of lists to a pandas DataFrame."""
+    if data:
+        return pd.DataFrame(data[1:], columns=data[0])
+    return pd.DataFrame()
 
-def dffromsheet(data: list):
-  df = pd.DataFrame(data[1:], columns=data[0])
-  return df
-
-def sheetfromdf(df):
-    # Extract column names
+def sheetfromdf(df: pd.DataFrame) -> list:
+    """Converts a pandas DataFrame to a list of lists suitable for Google Sheets API."""
     columns = df.columns.tolist()
-    # Extract rows
     rows = df.values.tolist()
-    # Combine column names and rows
-    result = [columns] + rows
-    return result
+    return [columns] + rows
 
-def write_values(spreadsheet_id: str, sheetname: str, range: str, values: list, service=service, value_input_option="USER_ENTERED"):
-  range_name = f"{sheetname}!{range}"
-  body = {'values': values}
-  try:
-    result = (
-        service.spreadsheets()
-        .values()
-        .update(
+def write_values(spreadsheet_id: str, sheetname: str, range_: str, values: list, service=service, value_input_option="USER_ENTERED") -> list:
+    """Writes values to a specified Google Sheets range."""
+    range_name = f"{sheetname}!{range_}"
+    body = {'values': values}
+    try:
+        result = service.spreadsheets().values().update(
             spreadsheetId=spreadsheet_id,
             range=range_name,
             valueInputOption=value_input_option,
-            body=body,
-        )
-        .execute()
-    )
-    rows = result.get("values", [])
-    return rows
+            body=body
+        ).execute()
+        return result
+    except HttpError as error:
+        print(f"An error occurred: {error}")
+        return []
 
-  except HttpError as error:
-    print(f"An error occurred: {error}")
-    return error
+# Example usage:
+if __name__ == "__main__":
+    SPREADSHEET_ID = '1H29_v1hU5H6wSAJj29QgyltHvletdJp8CFim1QXJrc4'
+    SHEET_NAME = 'Maj'
+    
+    # Read values from the sheet
+    values = get_values(SPREADSHEET_ID, SHEET_NAME, 'A1:D5')
+    print("Values from the sheet:", values)
+    
+    # Convert to DataFrame
+    df = dffromsheet(values)
+    print("DataFrame from sheet values:", df.head())
